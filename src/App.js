@@ -1,6 +1,9 @@
 import { useState, useRef } from "react";
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Gallery from "./components/Gallery";
 import SearchBar from "./components/SearchBar";
+import AlbumView from "./components/AlbumView";
+import ArtistView from "./components/ArtistView";
 import { DataContext } from "./contexts/DataContext";
 import { SearchContext } from "./contexts/SearchContext";
 import "./App.css";
@@ -31,27 +34,37 @@ function App() {
       }
     };
     if (search) {
-      try {
         fetchData();
-      } catch (e) {}
     }
   };
 
   return (
     <div className="App">
-      <SearchContext.Provider
-        value={{
-          term: searchInput,
-          handleSearch: handleSearch,
-        }}
-      >
-        <SearchBar />
-      </SearchContext.Provider>
-
       {message}
-      <DataContext.Provider value={data}>
-        <Gallery />
-      </DataContext.Provider>
+      <Router>
+        <Routes>
+          <Route
+            path="/"
+            element={
+              <>
+                <SearchContext.Provider
+                  value={{
+                    term: searchInput,
+                    handleSearch: handleSearch,
+                  }}
+                >
+                  <SearchBar />
+                </SearchContext.Provider>
+                <DataContext.Provider value={data}>
+                  <Gallery />
+                </DataContext.Provider>
+              </>
+            }
+          />
+          <Route path="/album/:id" element={<AlbumView />} />
+          <Route path="/artist/:id" element={<ArtistView />} />
+        </Routes>
+      </Router>
     </div>
   );
 }
