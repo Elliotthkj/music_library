@@ -1,40 +1,57 @@
-import { useState, useEffect } from "react";
+import { useState, useRef } from "react";
 import Gallery from "./components/Gallery";
 import SearchBar from "./components/SearchBar";
+import { DataContext } from "./contexts/DataContext";
+import { SearchContext } from "./contexts/SearchContext";
 import "./App.css";
 
 function App() {
-  let [search, setSearch] = useState("");
   let [message, setMessage] = useState("Search for Musix");
   let [data, setData] = useState([]);
+  let searchInput = useRef("");
 
-  useEffect(() => {
+  const handleSearch = (e, search) => {
+    e.preventDefault();
     const fetchData = async () => {
-      document.title = `${search} Music`;
-      const response = await fetch(
-        `https://itunes.apple.com/search?term=${search}`
-      );
-      const resData = await response.json();
-      console.log(resData);
-      if (resData.results.length) {
-        setData(resData.results);
-      } else {
-        setMessage(`We couldn't find any music for "${search}"`);
+      try {
+        document.title = `${search} Music`;
+        const response = await fetch(
+          `https://itunes.apple.com/search?term=${search}`
+        );
+        const resData = await response.json();
+        console.log(resData);
+        if (resData.results.length) {
+          setData(resData.results);
+          setMessage("");
+        } else {
+          setMessage(`We couldn't find any music for "${search}"`);
+        }
+      } catch (e) {
+        console.log(e);
       }
     };
-    fetchData();
-  }, [search]);
-
-  const handleSearch = (e, term) => {
-    e.preventDefault();
-    setSearch(term);
+    if (search) {
+      try {
+        fetchData();
+      } catch (e) {}
+    }
   };
 
   return (
     <div className="App">
-      <SearchBar handleSearch={handleSearch} />
+      <SearchContext.Provider
+        value={{
+          term: searchInput,
+          handleSearch: handleSearch,
+        }}
+      >
+        <SearchBar />
+      </SearchContext.Provider>
+
       {message}
-      <Gallery data={data}/>
+      <DataContext.Provider value={data}>
+        <Gallery />
+      </DataContext.Provider>
     </div>
   );
 }
